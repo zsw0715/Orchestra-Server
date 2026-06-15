@@ -21,6 +21,7 @@ class NodePosition(BaseModel):
     x: float = 0
     y: float = 0
 
+
 class ExternalKBState(BaseModel):
     """
     外部知识库节点状态。
