@@ -1,11 +1,13 @@
 """
 Phase 0: Alignment — multi-turn conversation between user and Orchestrator
+
+Version 0.1.0 For minimum demo
 """
 import json
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from agent.state import AgenticWorkflowState, AlignmentPhaseState, SubAgentConfig
 from config.model import init_model
-from prompt.phase import PHASE_SYSTEM_PROMPT
+from prompts.phase import PHASE_SYSTEM_PROMPT
 
 
 # ============================================================
@@ -84,6 +86,7 @@ def _run_conversation_loop(model, conversation: list) -> str:
         human = input("You: ").strip()
         conversation.append(HumanMessage(content=human))
 
+
 def _parse_json_with_retry(model, conversation: list, final_text: str) -> dict:
     """
     Parse the final text as JSON with retry mechanism.
@@ -108,11 +111,11 @@ def _compose_return(data: dict, cfg) -> dict:
     reasoning = data.get("agent_split_reasoning", "")
 
     sub_agents = []
-    for a in data.get("sub_agents", []):
+    for sa in data.get("sub_agents", []):
         sub_agents.append(SubAgentConfig(
-            label=a.get("label", "Agent"),
-            role=a.get("role", "unknown"),
-            description=a.get("description", ""),
+            label=sa.get("label", "Agent"),
+            role=sa.get("role", "unknown"),
+            description=sa.get("description", ""),
             model=cfg.model,
             temperature=cfg.temperature,
             max_tokens=cfg.max_tokens,
@@ -140,6 +143,9 @@ def make_alignment_node():
     """
 
     def alignment_node(state: AgenticWorkflowState) -> dict:
+        """
+        Define the alignment node behavior.
+        """
         cfg = state.orchestrator
 
         model = _init_model(cfg)

@@ -10,7 +10,7 @@ _default_model = None
 # ============================================================
 # Internal
 # ============================================================
-def _detect_provider(model: str) -> str:
+def detect_provider(model: str) -> str:
     """
     Infer provider from model name string.
     """
@@ -55,7 +55,7 @@ def init_model(
         provider = settings.default_provider.lower()
         selected = ""
     else:
-        provider = _detect_provider(model)
+        provider = detect_provider(model)
         selected = model
 
     match provider:
@@ -95,5 +95,53 @@ def init_model(
                 max_tokens=max_tokens,
                 streaming=streaming,
             )
+        case _:
+            raise ValueError(f"Unknown provider: {provider}")
+
+
+def build_autogen_llm_config(model: str = "", temperature: float = 0.3) -> dict:
+    """
+    Build an autogen-compatible llm_config dict from our settings.
+
+    Used by plan.py (and later write.py) to create AssistantAgent instances.
+    """
+    provider = detect_provider(model)
+    match provider:
+        case "deepseek":
+            return {
+                "config_list": [{
+                    "model": model or settings.deepseek_basic_model,
+                    "api_key": settings.deepseek_api_key,
+                    "base_url": settings.deepseek_base_url,
+                }],
+                "temperature": temperature,
+            }
+        case "kimi":
+            return {
+                "config_list": [{
+                    "model": model or settings.moonshot_basic_model,
+                    "api_key": settings.moonshot_api_key,
+                    "base_url": settings.moonshot_base_url,
+                }],
+                "temperature": temperature,
+            }
+        case "glm":
+            return {
+                "config_list": [{
+                    "model": model or settings.zhipuai_basic_model,
+                    "api_key": settings.zhipuai_api_key,
+                    "base_url": settings.zhipuai_base_url,
+                }],
+                "temperature": temperature,
+            }
+        case "qwen":
+            return {
+                "config_list": [{
+                    "model": model or settings.dashscope_basic_model,
+                    "api_key": settings.dashscope_api_key,
+                    "base_url": settings.dashscope_base_url,
+                }],
+                "temperature": temperature,
+            }
         case _:
             raise ValueError(f"Unknown provider: {provider}")

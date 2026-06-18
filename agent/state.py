@@ -56,10 +56,12 @@ class ChatMessage(BaseModel):
     Attributes:
         role:      Speaker role ("accommodationAgent" | "foodAgent" | "orchestrator" | "human").
         content:   Message body.
+        phase:     Which phase this message belongs to ("alignment" | "research" | "plan" | "write").
         timestamp: ISO 8601 timestamp.
     """
     role: str
     content: str
+    phase: str = ""
     timestamp: str
 
 
@@ -84,7 +86,7 @@ class OrchestratorConfig(BaseModel):
         subagents:      List of Sub-Agent dispatched.
         tools:          Available tools list.
         skills:         Available skills list.
-        self_messages:  Orchestrator's own message history, manually managed.
+        phase_messages:  Orchestrator's per-phase message history.
         position:       Frontend node position.
         node_type:      React Flow node type identifier.
     """
@@ -102,7 +104,7 @@ class OrchestratorConfig(BaseModel):
     subagents: list = Field(default_factory=list)
     tools: list = Field(default_factory=list)
     skills: list = Field(default_factory=list)
-    self_messages: list = Field(default_factory=list)
+    phase_messages: list[ChatMessage] = Field(default_factory=list)
     position: NodePosition = Field(default_factory=NodePosition)
     node_type: str = "orchestrator"
 
@@ -127,7 +129,7 @@ class SubAgentConfig(BaseModel):
         max_rounds:      Maximum coordination rounds.
         tools:           Available tools list.
         skills:          Available skills list.
-        self_messages:   SubAgent's message history.
+        phase_messages:  SubAgent's per-phase message history.
         findings:        List of findings in Phase 1 Research.
         section_content: Content written by SubAgent in Phase 3 Write.
         position:        Frontend node position.
@@ -148,7 +150,7 @@ class SubAgentConfig(BaseModel):
     max_rounds: int = 10
     tools: list = Field(default_factory=list)
     skills: list = Field(default_factory=list)
-    self_messages: list = Field(default_factory=list)
+    phase_messages: list[ChatMessage] = Field(default_factory=list)
     findings: list = Field(default_factory=list)
     section_content: str = ""
     position: NodePosition = Field(default_factory=NodePosition)
