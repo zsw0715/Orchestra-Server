@@ -1,5 +1,5 @@
 """
-Overall Agentic Workflow 状态对象
+Overall Agentic Workflow State Object
 """
 from typing import Annotated
 from langgraph.graph.message import add_messages
@@ -8,15 +8,15 @@ import uuid
 
 
 # ============================================================
-# 基础设施
+# Infrastructure
 # ============================================================
 class NodePosition(BaseModel):
     """
-    React Flow 节点画布坐标。
+    React Flow Node Position.
     
     Attributes:
-        x: 节点横坐标
-        y: 节点纵坐标
+        x: horizontal coordinate
+        y: Node vertical coordinate
     """
     x: float = 0
     y: float = 0
@@ -24,19 +24,19 @@ class NodePosition(BaseModel):
 
 class ExternalKBState(BaseModel):
     """
-    外部知识库节点状态。
-    仅存元数据标识，真正的文件内容向量化后存储在 ChromaDB 中。
+    External Knowledge Base Node State.
+    Only stores metadata, actual file content are vectorized and stored in ChromaDB.
 
     Attributes:
-        label:            前端节点显示名称。
-        status:           当前状态 (idle | indexing | ready | error)。
-        source:           知识库类型描述 ("RAG / 个人数据库")。
-        document_count:   已索引的文档数量。
-        files:            已索引的文件名列表。
-        folder_name:      用户选中的文件夹名称。
-        collection_name:  ChromaDB 中对应的 collection 名称，SubAgent 检索时以此定位。
-        position:         前端画布坐标。
-        node_type:        React Flow 节点类型标识。
+        label:            Frontend node display name.
+        status:           Current status (idle | indexing | ready | error).
+        source:           Knowledge base type description ("RAG / personal knowledge base").
+        document_count:   Indexed document count.
+        files:            Indexed file names.
+        folder_name:      Selected folder name.
+        collection_name:  ChromaDB collection name, Sub-Agent retrieves from.
+        position:         Frontend node position.
+        node_type:        React Flow node type identifier.
     """
     label: str = ""
     status: str = "idle"
@@ -51,12 +51,12 @@ class ExternalKBState(BaseModel):
 
 class ChatMessage(BaseModel):
     """
-    通用聊天消息，Research / Plan / Write 阶段共用，etc。
+    Common Chat message for Research / Plan / Write phase.
 
     Attributes:
-        role:      发言者角色 ("住宿Agent" | "美食Agent" | "orchestrator" | "human")。
-        content:   消息正文。
-        timestamp: ISO 8601 时间戳。
+        role:      Speaker role ("accommodationAgent" | "foodAgent" | "orchestrator" | "human").
+        content:   Message body.
+        timestamp: ISO 8601 timestamp.
     """
     role: str
     content: str
@@ -64,30 +64,29 @@ class ChatMessage(BaseModel):
 
 
 # ============================================================
-# Agent 配置与运行时状态
+# Agent Configuration and Runtime State
 # ============================================================
 class OrchestratorConfig(BaseModel):
     """
     Orchestrator Agent 配置与运行时状态
 
     Attributes:
-        agent_id:       Agent 唯一标识。
-        label:          前端节点显示名称。
-        phase:          当前所处宏观阶段 (alignment/research/plan/write/done)。
-        status:         当前运行状态 (idle/thinking/waiting_human/done/error)，驱动前端光晕。
-        system_prompt:  Orchestrator 的系统提示词。
-        model:          使用的模型 ID (如 deepseek-v4-flash)。
-        model_icon:     前端模型图标标识。
-        temperature:    模型温度参数。
-        max_tokens:     最大输出 token 数。
-        reasoning:      是否启用推理/思考链。
-        max_rounds:     最大协调轮次。
-        subagents:      已派出的子 Agent 列表 (SubAgentConfig)，前端节点内缩略渲染。
-        tools:          可用工具列表。
-        skills:         可用技能列表。
-        self_messages:  Orchestrator 自己的发言记录，手动管理。
-        position:       前端画布坐标。
-        node_type:      React Flow 节点类型标识。
+        agent_id:       Agent unique identifier.
+        label:          Frontend node display name.
+        phase:          Current phase in the workflow (alignment/research/plan/write/done).
+        status:         Current status (idle/thinking/waiting_human/done/error).
+        system_prompt:  Orchestrator system prompt.
+        model:          Model ID (like deepseek-v4-flash).
+        model_icon:     Frontend model icon identifier.
+        temperature:    Model temperature parameter.
+        max_tokens:     Maximum output token count.
+        reasoning:      Whether to enable reasoning.
+        subagents:      List of Sub-Agent dispatched.
+        tools:          Available tools list.
+        skills:         Available skills list.
+        self_messages:  Orchestrator's own message history, manually managed.
+        position:       Frontend node position.
+        node_type:      React Flow node type identifier.
     """
     agent_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     label: str = "Orchestrator"
@@ -110,29 +109,29 @@ class OrchestratorConfig(BaseModel):
 
 class SubAgentConfig(BaseModel):
     """
-    子 Agent 配置与运行时状态
+    Sub-Agent Agent Configuration and Runtime State
 
     Attributes:
-        agent_id:        SubAgent 唯一标识。
-        label:           前端节点显示名称。
-        role:            领域角色 (如 accommodation/food/sightseeing)。
-        description:     前端节点内显示的描述文本。
-        phase:           当前所处宏观阶段。
-        status:          当前运行状态 (idle/thinking/waiting_human/done/error)。
-        system_prompt:   子 Agent 的系统提示词。
-        model:           使用的模型 ID。
-        model_icon:      前端模型图标标识。
-        temperature:     模型温度参数。
-        max_tokens:      最大输出 token 数。
-        reasoning:       是否启用推理/思考链。
-        max_rounds:      最大协调轮次。
-        tools:           可用工具列表。
-        skills:          可用技能列表。
-        self_messages:   该 SubAgent 的发言记录。
-        findings:        该 SubAgent 在 Phase 1 Research 调研发现列表。
-        section_content: 该 SubAgent 在 Phase 3 Write 撰写的章节内容。
-        position:        前端画布坐标。
-        node_type:       React Flow 节点类型标识。
+        agent_id:        SubAgent unique identifier.
+        label:           Frontend node display name.
+        role:            Domain role (like accommodation/food/sightseeing).
+        description:     Description text displayed in the frontend node.
+        phase:           Current phase in the workflow.
+        status:          Current status (idle/thinking/waiting_human/done/error).
+        system_prompt:   Sub-Agent system prompt.
+        model:           Model ID (like deepseek-v4-flash).
+        model_icon:      Frontend model icon identifier.
+        temperature:     Model temperature parameter.
+        max_tokens:      Maximum output token count.
+        reasoning:       Whether to enable reasoning.
+        max_rounds:      Maximum coordination rounds.
+        tools:           Available tools list.
+        skills:          Available skills list.
+        self_messages:   SubAgent's message history.
+        findings:        List of findings in Phase 1 Research.
+        section_content: Content written by SubAgent in Phase 3 Write.
+        position:        Frontend node position.
+        node_type:       React Flow node type identifier.
     """
     agent_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     label: str
@@ -157,18 +156,20 @@ class SubAgentConfig(BaseModel):
 
 
 # ============================================================
-# Phase State — 各阶段独立产出
+# Phase State — Independent Output for Each Phase
 # ============================================================
 class AlignmentPhaseState(BaseModel):
     """
-    Phase 0: Alignment 阶段产出。
-    用户与 Orchestrator 多轮对话，对齐需求、确定任务类型，共同制定子 Agent 拆分方案。
-    对话过程记录在 AgenticWorkflowState.messages 中，Agent 阵容写入 AgenticWorkflowState.sub_agents。
+    Phase 0: Alignment Phase Output.
+    The user engages in multiple rounds of dialogues with Orchestrator, 
+    aligning requirements, determining task types, and jointly formulating 
+    the sub-Agent splitting plan.
+    Dialogues are recorded in AgenticWorkflowState.messages, 
+    and sub-Agent agents are dispatched in AgenticWorkflowState.sub_agents.
 
     Attributes:
-        task_type:              任务类型 ("travel" | "industry_report" | "study_abroad" | ……)，
-                                后续各 Phase 节点可根据此字段选择对应的 Few-Shot 模板调优 LLM 输出。
-        agent_split_reasoning:  Orchestrator 将任务拆分为这些子 Agent 维度的推理过程。
+        task_type:              Task type ("travel" | "industry_report" | "study_abroad" | ……).
+        agent_split_reasoning:  Orchestrator's reasoning process for splitting the task into sub-Agent agents.
     """
     task_type: str = ""
     agent_split_reasoning: str = ""
@@ -176,13 +177,15 @@ class AlignmentPhaseState(BaseModel):
 
 class ResearchPhaseState(BaseModel):
     """
-    Phase 1: Research 阶段产出。
-    各子 Agent 并行独立调研，追求信息广度最大化，允许矛盾存在。
-    Orchestrator 收取所有 findings 后撰写一份全局摘要，跨领域矛盾留给 Phase 2 群聊自然暴露。
+    Phase 1: Research Phase Output
+    Each sub-agent conducts independent research in parallel, 
+    aiming to maximize the breadth of information, and allowing contradictions to exist.
+    Orchestrator collects all the findings and writes a global summary. 
+    Cross-domain contradictions are left for the Phase 2 group chat to naturally expose.
 
     Attributes:
-        agent_statuses:    各 Agent 调研进度映射表 (agent_name → thinking | done | error)。
-        research_summary:  Orchestrator 汇总所有 finding 后的全局调研摘要。
+        agent_statuses:    Research status mapping (agent_name → thinking | done | error).
+        research_summary:  Orchestrator collects all the findings and writes a global summary.
     """
     agent_statuses: dict[str, str] = Field(default_factory=dict)
     research_summary: str = ""
@@ -190,19 +193,22 @@ class ResearchPhaseState(BaseModel):
 
 class PlanningPhaseState(BaseModel):
     """
-    Phase 2: Plan 阶段产出。
-    启动 AG2 群聊，各子 Agent 在 Orchestrator 主持下协商解决 Research 阶段暴露的跨领域矛盾。
-    人类可在群聊过程中注入梯度信号（如“全部以美食为中心，住宿改观音桥”），
-    系统将此信号重新注入群聊，循环直至产出无冲突的结构化计划。
+    Phase 2: Planning Phase Output
+    Orchestrator launches an AG2 group chat, where each sub-agent negotiates 
+    to resolve cross-domain contradictions exposed in the Research Phase.
+    Human participants can inject gradient signals 
+    (e.g., "Focus on food and accommodation, change hotel to Guanyin Bridge") during the chat,
+    which are then reinjected into the group chat, 
+    iteratively until a conflict-free structured plan is produced.
 
     Attributes:
-        agent_statuses:      各 Agent 在群聊中的状态映射表 (agent_name → talking | waiting | done)。
-        content_summary:     群聊协调结果的摘要文本（前端 Plan 节点直接渲染）。
-        chat_history:        完整的群聊记录（前端点击 Plan 节点展开查看）。
-        round_count:         群聊运行的总轮次。
-        human_interventions: 人类梯度信号记录列表 [{round: int, feedback: str}]。
-        position:            前端画布坐标。
-        node_type:           React Flow 节点类型标识。
+        agent_statuses:      Group chat status mapping (agent_name → talking | waiting | done).
+        content_summary:     Group chat summary text (frontend node directly renders).
+        chat_history:        Full group chat history.
+        round_count:         Total rounds of group chat.
+        human_interventions: List of human gradient signals [{round: int, feedback: str}]        
+        position:            Frontend node position.
+        node_type:           React Flow node type identifier.
     """
     agent_statuses: dict[str, str] = Field(default_factory=dict)
     content_summary: str = ""
@@ -215,16 +221,19 @@ class PlanningPhaseState(BaseModel):
 
 class WritingPhaseState(BaseModel):
     """
-    Phase 3: Write 阶段产出。
-    各子 Agent 按顺序撰写自己领域的内容章节，全部完成后启动 AG2 纠错聊天室，
-    所有 Agent 对终稿进行交叉审查（时间矛盾、逻辑漏洞等）。
-    各章节草稿储存在 SubAgentConfig.section_content 中。
+    Phase 3: Writing Phase Output
+    Each sub-agent writes their domain-specific content section in order.
+    Once all agents have completed their sections, 
+    Orchestrator launches an AG2 correction chat room, 
+    where all agents review each other's work for cross-domain conflicts 
+    (e.g., time conflicts, logical vulnerabilities).
+    Each agent's draft is stored in SubAgentConfig.section_content.
 
     Attributes:
-        agent_statuses: 各 Agent 撰写/审查进度映射表 (agent_name → writing | reviewing | done | error)。
-        draft_order:    撰写顺序（agent label 列表），按序执行以保持上下文连贯。
-        chat_history:   纠错聊天室的完整对话记录。
-        summary:        纠错聊天室的结论摘要。
+        agent_statuses: Writing status mapping (agent_name → writing | reviewing | done | error).
+        draft_order:    Writing order (agent label list).
+        chat_history:   Full correction chat room dialogues.
+        summary:        Correction chat room summary.
     """
     agent_statuses: dict[str, str] = Field(default_factory=dict)
     draft_order: list[str] = Field(default_factory=list)
@@ -234,12 +243,12 @@ class WritingPhaseState(BaseModel):
 
 class OutputGatheringState(BaseModel):
     """
-    Write 阶段结束后，Orchestrator 将所有 Agent 的 section_content 拼接为全文。
+    After the Writing Phase, Orchestrator gathers all the outputs from all sub-agents.
 
     Attributes:
-        final_output: 拼接合并后的最终输出全文。
-        position:     前端画布坐标。
-        node_type:    React Flow 节点类型标识。
+        final_output: Final concatenated output text.
+        position:     Frontend node position.
+        node_type:    React Flow node type identifier.
     """
     final_output: str = ""
     position: NodePosition = Field(default_factory=NodePosition)
@@ -247,30 +256,30 @@ class OutputGatheringState(BaseModel):
 
 
 # ============================================================
-# 主 State — LangGraph StateGraph 使用
+# Main Workflow State, For LangGraph StateGraph
 # ============================================================
 class AgenticWorkflowState(BaseModel):
     """
-    贯穿 LangGraph 所有 Phase 的全局状态。
+    The global state that runs through all phases of LangGraph.
 
-    合并行为：
-      - messages:  唯一使用 add_messages reducer 的字段，节点返回后自动追加而非替换。
-      - 其余所有顶层字段: 整体替换。每个节点必须返回完整的对应对象。
-        例如 research_node 需返回 {"research": ResearchPhaseState(...)}。
+    Merging behavior:
+        - messages: The only field that uses the "add_messages" reducer. After the node returns, it automatically appends rather than replaces.
+        - All other top-level fields: Complete replacement. Each node must return the complete corresponding object.
+        For example, the "research_node" must return {"research": ResearchPhaseState(...)} }
 
     Attributes:
-        workflow_id:     本次工作流的唯一标识，与 PostgresSaver thread_id 一致。
-        user_query:      用户原始需求文本，全流程复用（各 Agent 检索/调研以此为基础）。
-        messages:        用户 ↔ Orchestrator 的全局对话历史，add_messages reducer 自动累加。
-        current_phase:   当前宏观阶段 (alignment | research | plan | write | done)。
-        orchestrator:    Orchestrator 的配置与运行时状态。
-        sub_agents:      所有子 Agent 的配置与运行时状态列表，Alignment 阶段确定后全流程复用。
-        alignment:       Phase 0 对齐阶段产物。
-        research:        Phase 1 研究阶段产物。
-        planning:        Phase 2 规划阶段产物。
-        writing:         Phase 3 撰写阶段产物。
-        output:          最终汇总产物。
-        external_kb:     外部知识库节点状态（元数据标识，实际内容在 ChromaDB）。
+        workflow_id: The unique identifier of this workflow, which is consistent with the PostgresSaver thread_id.
+        user_query: The original user requirement text, which is reused throughout the process (each Agent retrieves/researches based on this basis).
+        messages: The global conversation history between the user and the Orchestrator, with the add_messages reducer automatically accumulating.
+        current_phase: The current macro stage (alignment | research | plan | write | done).
+        orchestrator: The configuration and runtime status of the Orchestrator.
+        sub_agents: The configuration and runtime status list of all sub Agents, which is reused throughout the process after the Alignment stage is determined.
+        alignment: The output of Phase 0 alignment stage.
+        research: The output of Phase 1 research stage.
+        planning: The output of Phase 2 planning stage.
+        writing: The output of Phase 3 writing stage.
+        output: The final aggregated output.
+        external_kb: The status of external knowledge nodes (metadata identifier, actual content is in ChromaDB).
     """
     workflow_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     user_query: str = ""

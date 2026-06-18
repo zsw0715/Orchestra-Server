@@ -1,59 +1,99 @@
 """
-模型配置，提供初始化模型的函数
+Model configuration — create ChatOpenAI instances by provider detection.
 """
 from langchain_openai import ChatOpenAI
 from config.settings import settings
 
+_default_model = None
 
-def init_chat_model(provider: str | None = None) -> ChatOpenAI:
-    """初始化模型"""
-    if provider is None:
+
+# ============================================================
+# Internal
+# ============================================================
+def _detect_provider(model: str) -> str:
+    """
+    Infer provider from model name string.
+    """
+    m = model.lower()
+    if "deepseek" in m:
+        return "deepseek"
+    if "kimi" in m or "moonshot" in m:
+        return "kimi"
+    if "glm" in m or "zhipu" in m:
+        return "glm"
+    if "qwen" in m or "dashscope" in m:
+        return "qwen"
+    return settings.default_provider.lower()
+
+
+def _get_default_model() -> ChatOpenAI:
+    """
+    Lazy singleton — reuse across graph invocations.
+    """
+    global _default_model
+    if _default_model is None:
+        _default_model = init_chat_model()
+    return _default_model
+
+
+# ============================================================
+# Public
+# ============================================================
+def init_model(
+    model: str = "",
+    temperature: float = 0.2,
+    max_tokens: int = 4096,
+    streaming: bool = True,
+) -> ChatOpenAI:
+    """
+    Create a ChatOpenAI instance by inferring the provider from the model name.
+
+    Nodes call this with state.orchestrator.model / state.sub_agents[i].model.
+    Falls back to the default provider when model is empty.
+    """
+    if not model:
         provider = settings.default_provider.lower()
+        selected = ""
+    else:
+        provider = _detect_provider(model)
+        selected = model
 
     match provider:
         case "deepseek":
             return ChatOpenAI(
                 api_key=settings.deepseek_api_key,
                 base_url=settings.deepseek_base_url,
-                model=settings.deepseek_basic_model,
-                streaming=True,
-                temperature=0.2,
+                model=selected or settings.deepseek_basic_model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                streaming=streaming,
             )
-        case "moonshot", "kimi":
+        case "kimi":
             return ChatOpenAI(
                 api_key=settings.moonshot_api_key,
                 base_url=settings.moonshot_base_url,
-                model=settings.moonshot_basic_model,
-                streaming=True,
-                temperature=0.2,
+                model=selected or settings.moonshot_basic_model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                streaming=streaming,
             )
-        case "zhipuai", "glm":
+        case "glm":
             return ChatOpenAI(
                 api_key=settings.zhipuai_api_key,
                 base_url=settings.zhipuai_base_url,
-                model=settings.zhipuai_basic_model,
-                streaming=True,
-                temperature=0.2,
+                model=selected or settings.zhipuai_basic_model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                streaming=streaming,
             )
-        case "dashscope", "qwen", "qwen3":
+        case "qwen":
             return ChatOpenAI(
                 api_key=settings.dashscope_api_key,
                 base_url=settings.dashscope_base_url,
-                model=settings.dashscope_basic_model,
-                streaming=True,
-                temperature=0.2,
+                model=selected or settings.dashscope_basic_model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                streaming=streaming,
             )
-        case "chatgpt", "openai", "claude", "gemini", "grok":
-            raise ValueError(f"Provider {provider} is not supported")
         case _:
             raise ValueError(f"Unknown provider: {provider}")
-
-
-_default_model = None             # 全局单例（图内复用，不要每次节点调用都 new）
-
-def get_default_model() -> ChatOpenAI:
-    """懒加载全局默认模型"""
-    global _default_model
-    if _default_model is None:
-        _default_model = init_chat_model()
-    return _default_model

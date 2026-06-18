@@ -1,5 +1,5 @@
 """
-从 env 读配置、做类型校验
+Load and validate configuration from .env / environment variables.
 """
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,22 +9,25 @@ BASE_DIR = Path(__file__).parent
 
 
 class Settings(BaseSettings):
-    """应用配置类：从 .env 或环境变量加载配置"""
+    """
+    Application settings loaded from .env or environment.
+    """
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR.parent / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
-    # 默认路由模型 
+    # Default model provider when not specified
     default_provider: str = "deepseek"
 
-    # 工作区 -- 之后做外挂知识库用的
+    # Workspace directory for external knowledge base (future)
     workspace_dir: str = ""
 
-    # 数据库
+    # Database
     database_url: str = ""
-    chroma_path: str = ".chroma"  # Chroma 数据库路径，以后做外挂知识库用的
+    chroma_path: str = ".chroma"
 
     # DeepSeek
     deepseek_api_key: str
@@ -38,28 +41,27 @@ class Settings(BaseSettings):
     moonshot_basic_model: str = "kimi-k2.5"
     moonshot_advanced_model: str = "kimi-k2.6"
 
-    # 智谱 GLM (ZhipuAI)
+    # ZhipuAI (GLM)
     zhipuai_api_key: str
     zhipuai_base_url: str = "https://open.bigmodel.cn/api/paas/v4/"
     zhipuai_basic_model: str = "glm-5-turbo"
     zhipuai_advanced_model: str = "glm-5.1"
 
-    # 通义千问 (DashScope)
+    # Qwen (DashScope)
     dashscope_api_key: str
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     dashscope_basic_model: str = "qwen3.6-35b-a3b"
     dashscope_advanced_model: str = "qwen3.6-plus"
 
-    # === Tavily ===
+    # Tavily
     tavily_api_key: str
 
-    # === 其他 ===
-    # 用于长网页提炼的轻量模型 配置
-    web_fetch_summarize_model : str = "deepseek-chat"
+    # Lightweight model for web fetch summarization
+    web_fetch_summarize_model: str = "deepseek-chat"
     web_fetch_summarize_model_api_key: str | None = None
     web_fetch_summarize_model_base_url: str | None = None
 
-    # LangSmith 配置
+    # LangSmith
     langsmith_tracing: bool = True
     langsmith_endpoint: str = "https://api.smith.langchain.com"
     langsmith_api_key: str | None = None
@@ -71,7 +73,7 @@ _langsmith_initialized = False
 
 def setup_langsmith_tracing():
     """
-    设置 LangSmith 自动追踪，幂等，只执行一次
+    Enable LangSmith auto-tracing (idempotent).
     """
     global _langsmith_initialized
     if _langsmith_initialized:
@@ -94,7 +96,7 @@ settings = Settings()
 
 if __name__ == "__main__":
     """
-    打印所有配置项，隐藏 API 密钥
+    Print all settings, masking API keys.
     """
     for k, v in settings.model_dump().items():
         if "api_key" in k and v:
