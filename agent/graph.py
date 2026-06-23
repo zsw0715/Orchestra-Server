@@ -1,6 +1,10 @@
 """
 LangGraph Graph Construction
 """
+import os
+
+os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "false")
+
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -29,17 +33,6 @@ def create_graph():
     builder.add_edge("write", END)
 
     return builder.compile(
-        checkpointer=MemorySaver(
-            serde={"allowed_msgpack_modules": [
-                ("agent.state", "OrchestratorConfig"),
-                ("agent.state", "SubAgentConfig"),
-                ("agent.state", "AlignmentPhaseState"),
-                ("agent.state", "ResearchPhaseState"),
-                ("agent.state", "PlanningPhaseState"),
-                ("agent.state", "WritingPhaseState"),
-                ("agent.state", "OutputGatheringState"),
-                ("agent.state", "ExternalKBState"),
-            ]},
-        ),
+        checkpointer=MemorySaver(),
         interrupt_before=["research", "plan", "write"],
     )
